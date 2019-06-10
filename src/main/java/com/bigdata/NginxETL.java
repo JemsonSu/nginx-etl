@@ -5,9 +5,11 @@ import java.io.BufferedWriter;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileOutputStream;
+import java.io.IOException;
 import java.io.InputStreamReader;
 import java.io.OutputStreamWriter;
 import java.net.URLDecoder;
+import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 
@@ -21,8 +23,8 @@ public class NginxETL {
 		String sOldDir = "";
 		String sOldFile = "";
 
-		BufferedWriter hourWiter = null;
 		while (true) {
+			BufferedWriter hourWiter = null;
 			BufferedReader reader = new BufferedReader(new InputStreamReader(new FileInputStream("/home/data/nginx/logs/nginx.log"), "utf-8"));
 			BufferedWriter writer = new BufferedWriter(new OutputStreamWriter(new FileOutputStream("/home/data/nginx/logs/Jemson_etl/post.log"), "utf-8"));
 			DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd HH"); // 先用分钟代替，后面再改为小时
@@ -30,8 +32,10 @@ public class NginxETL {
 			
 
 
+			//读nginx.log文件每一行
 			String line = null;
-			while ((line = reader.readLine()) != null) {
+			while ((line = myReadLine(reader)) != null ) { 
+				
 				//System.out.println(line); 
 				line = decoder(line);
 				//System.out.println("最终数据为:|"+line+"|");
@@ -57,7 +61,7 @@ public class NginxETL {
 					sOldDir = sDir;
 				}
 				
-				if (!sFile.equals(sOldFile)) {
+				if (!sFile.equals(sOldFile) || hourWiter==null) {
 					MyUtils.close(hourWiter); 
 					hourWiter = new BufferedWriter(new OutputStreamWriter(new FileOutputStream(sFile,true), "utf-8"));
 					sOldFile = sFile;
@@ -67,7 +71,7 @@ public class NginxETL {
 				hourWiter.write(line);
 				hourWiter.newLine();
 				hourWiter.flush();
-				
+				   
 				
 				//Thread.sleep(10*1000);
 			}
@@ -91,6 +95,37 @@ public class NginxETL {
 		
 
 	}
+	
+	
+	/**
+	 * 读取一行，并判断是当天时间内
+	 * 
+	 */
+	public static String myReadLine(BufferedReader reader) {
+		String line = null;
+		LocalDate now = LocalDate.now();
+		int dayOfYear = now.getDayOfYear();
+		try {
+			while(true) {
+				line = reader.readLine();
+				if(line!=null || dayOfYear < LocalDate.now().getDayOfYear()) {
+					System.out.println("跳出");
+					break;
+				} 
+				
+				Thread.sleep(500);
+			}
+			
+		} catch (IOException e) {
+			e.printStackTrace();
+		} catch (InterruptedException e) {
+			e.printStackTrace();
+		}
+		return line;
+	}
+	
+	
+	
 	
 	/**
 	 * 数据处理  即数据清洗
