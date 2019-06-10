@@ -2,21 +2,16 @@ package com.bigdata;
 
 import java.io.BufferedReader;
 import java.io.BufferedWriter;
-import java.io.ByteArrayInputStream;
-import java.io.ByteArrayOutputStream;
 import java.io.File;
 import java.io.FileInputStream;
-import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
 import java.io.InputStreamReader;
 import java.io.OutputStreamWriter;
-import java.io.UnsupportedEncodingException;
 import java.net.URLDecoder;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
-import java.util.zip.GZIPInputStream;
 
-import javax.swing.InputMap;
+import com.bigdata.util.MyUtils;
 
 public class NginxETL {
 
@@ -64,7 +59,8 @@ public class NginxETL {
 				
 				if (!sFile.equals(sOldFile)) {
 					if(hourWiter!=null) {
-						hourWiter.close();
+						//hourWiter.close();
+						MyUtils.close(hourWiter); 
 					}
 					hourWiter = new BufferedWriter(new OutputStreamWriter(new FileOutputStream(sFile), "utf-8"));
 					sOldFile = sFile;
@@ -81,8 +77,10 @@ public class NginxETL {
 			System.out.println("读完nginx/logs/nginx.log文件!");
 
 			// 读完一个文件
-			reader.close();
-			writer.close();
+			//hourWiter.close();
+			//reader.close();
+			//writer.close();
+			MyUtils.close(hourWiter,reader,writer); 
 
 		
 			
