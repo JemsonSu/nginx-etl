@@ -21,10 +21,10 @@ public class NginxETL {
 		String sOldDir = "";
 		String sOldFile = "";
 
+		BufferedWriter hourWiter = null;
 		while (true) {
 			BufferedReader reader = new BufferedReader(new InputStreamReader(new FileInputStream("/home/data/nginx/logs/nginx.log"), "utf-8"));
 			BufferedWriter writer = new BufferedWriter(new OutputStreamWriter(new FileOutputStream("/home/data/nginx/logs/Jemson_etl/post.log"), "utf-8"));
-			BufferedWriter hourWiter = null;
 			DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd HH"); // 先用分钟代替，后面再改为小时
 
 			
@@ -58,11 +58,8 @@ public class NginxETL {
 				}
 				
 				if (!sFile.equals(sOldFile)) {
-					if(hourWiter!=null) {
-						//hourWiter.close();
-						MyUtils.close(hourWiter); 
-					}
-					hourWiter = new BufferedWriter(new OutputStreamWriter(new FileOutputStream(sFile), "utf-8"));
+					MyUtils.close(hourWiter); 
+					hourWiter = new BufferedWriter(new OutputStreamWriter(new FileOutputStream(sFile,true), "utf-8"));
 					sOldFile = sFile;
 					
 				}
@@ -77,9 +74,6 @@ public class NginxETL {
 			System.out.println("读完nginx/logs/nginx.log文件!");
 
 			// 读完一个文件
-			//hourWiter.close();
-			//reader.close();
-			//writer.close();
 			MyUtils.close(hourWiter,reader,writer); 
 
 		
