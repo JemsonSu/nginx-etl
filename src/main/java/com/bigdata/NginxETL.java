@@ -108,10 +108,14 @@ public class NginxETL {
 		try {
 			while(true) {
 				line = reader.readLine();
-				if(line!=null || dayOfYear < LocalDate.now().getDayOfYear()) {
-					System.out.println("跳出");
+				if(line!=null ) {
 					break;
-				} 
+				} else if (dayOfYear < LocalDate.now().getDayOfYear()) {
+					System.out.println("到达第二天,跳出");
+					break;
+				} else {
+					System.out.println("还是在当天，获取不到数据，继续循环...");
+				}
 				
 				Thread.sleep(500);
 			}
