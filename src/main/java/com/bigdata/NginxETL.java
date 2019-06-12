@@ -11,6 +11,7 @@ import java.io.OutputStreamWriter;
 import java.net.URLDecoder;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
+import java.time.LocalTime;
 import java.time.format.DateTimeFormatter;
 
 import com.bigdata.util.MyUtils;
@@ -26,7 +27,7 @@ public class NginxETL {
 		while (true) {
 			BufferedWriter hourWiter = null;
 			BufferedReader reader = new BufferedReader(new InputStreamReader(new FileInputStream("/home/data/nginx/logs/nginx.log"), "utf-8"));
-			BufferedWriter writer = new BufferedWriter(new OutputStreamWriter(new FileOutputStream("/home/data/nginx/logs/Jemson_etl/post.log"), "utf-8"));
+			BufferedWriter writer = new BufferedWriter(new OutputStreamWriter(new FileOutputStream("/home/data/nginx/logs/Jemson_etl/post-data.txt"), "utf-8"));
 			DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd HH"); // 先用分钟代替，后面再改为小时
 
 			
@@ -53,7 +54,7 @@ public class NginxETL {
 				// 当前目录 到时修改为全路径
 				String sDir = "/home/data/nginx/logs/Jemson_etl/" + sDate;
 				// 当前文件
-				String sFile = sDir + "/post.log_" + sTime;
+				String sFile = sDir + "/post-data.txt_" + sTime;
 				
 				
 				if (!sDir.equals(sOldDir)) {
@@ -61,11 +62,10 @@ public class NginxETL {
 					sOldDir = sDir;
 				}
 				
-				if (!sFile.equals(sOldFile) || hourWiter==null) {
+				if (!sFile.equals(sOldFile)) {
 					MyUtils.close(hourWiter); 
 					hourWiter = new BufferedWriter(new OutputStreamWriter(new FileOutputStream(sFile,true), "utf-8"));
 					sOldFile = sFile;
-					
 				}
 				
 				hourWiter.write(line);
@@ -78,7 +78,7 @@ public class NginxETL {
 			System.out.println("读完nginx/logs/nginx.log文件!");
 
 			// 读完一个文件
-			MyUtils.close(hourWiter,reader,writer); 
+			MyUtils.close(hourWiter ,writer ,reader); 
 
 		
 			
@@ -103,21 +103,21 @@ public class NginxETL {
 	 */
 	public static String myReadLine(BufferedReader reader) {
 		String line = null;
-		LocalDate now = LocalDate.now();
-		int dayOfYear = now.getDayOfYear();
 		try {
 			while(true) {
 				line = reader.readLine();
+				//System.out.println("line = " + line); 
 				if(line!=null ) {
 					break;
-				} else if (dayOfYear < LocalDate.now().getDayOfYear()) {
+				} 
+				if (isBetweenTime()) {
 					System.out.println("到达第二天,跳出");
+					line=null; //第二天跳出故而置空
+					Thread.sleep(60 * 1000);
 					break;
-				} else {
-					System.out.println("还是在当天，获取不到数据，继续循环...");
-				}
+				} 
 				
-				Thread.sleep(500);
+				Thread.sleep(1000);
 			}
 			
 		} catch (IOException e) {
@@ -126,6 +126,24 @@ public class NginxETL {
 			e.printStackTrace();
 		}
 		return line;
+	}
+	
+	//判断在nginx.log滚动时间之间
+	public static boolean isBetweenTime() {
+		boolean flag = false;
+		LocalTime now = LocalTime.now();
+		
+		//在这个时间休息一分钟
+		LocalTime lt4 = LocalTime.parse("00:01:00");
+		LocalTime lt5 = LocalTime.parse("00:01:59");
+		
+		
+		flag = now.isAfter(lt4) && now.isBefore(lt5);
+		
+		
+		
+		return flag;
+		
 	}
 	
 	
