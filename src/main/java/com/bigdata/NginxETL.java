@@ -62,7 +62,7 @@ public class NginxETL {
 					sOldDir = sDir;
 				}
 				
-				if (!sFile.equals(sOldFile)) {
+				if (!sFile.equals(sOldFile) || hourWiter==null) {
 					MyUtils.close(hourWiter); 
 					hourWiter = new BufferedWriter(new OutputStreamWriter(new FileOutputStream(sFile,true), "utf-8"));
 					sOldFile = sFile;
