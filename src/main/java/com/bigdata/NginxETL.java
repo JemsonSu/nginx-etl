@@ -13,7 +13,14 @@ import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.LocalTime;
 import java.time.format.DateTimeFormatter;
+import java.util.Date;
 
+import org.apache.commons.lang3.time.DateUtils;
+
+import com.alibaba.fastjson.JSON;
+import com.alibaba.fastjson.JSONArray;
+import com.alibaba.fastjson.JSONObject;
+import com.bigdata.util.HashUtil;
 import com.bigdata.util.MyUtils;
 
 public class NginxETL {
@@ -36,7 +43,7 @@ public class NginxETL {
 			//读nginx.log文件每一行
 			String line = null;
 			while ((line = myReadLine(reader)) != null ) { 
-				
+				String ip = getIP(line); 
 				//System.out.println(line); 
 				line = decoder(line);
 				//System.out.println("最终数据为:|"+line+"|");
@@ -154,9 +161,66 @@ public class NginxETL {
 	 * @param line
 	 * @return
 	 */
-	public static String processData(String line) {
-		line += line+"kk";
-		return line;
+	public static String processData(String line, String ip) {
+		StringBuilder sb = new StringBuilder();
+		try {
+			JSONArray jsonArray = JSON.parseArray(line); //默认当数组处理
+			for(int i=0; i<jsonArray.size(); i++) {
+				JSONObject jsonObject = jsonArray.getJSONObject(i);
+				String type = jsonObject.getString("type"); //获取类型
+				//事件逻辑
+                if(type.equals("track") || type.equals("track_signup")) {
+                	JSONObject propertiesJsonObject = jsonObject.getJSONObject("properties"); 
+                	String event = jsonObject.getString("event");
+                	String distinct_id = jsonObject.getString("distinct_id");
+                	String time = jsonObject.getString("time");
+                	
+                	//把 hash值 转换为 long值
+                    Long user_id = HashUtil.userIdHash(distinct_id.toString());
+                	
+                	
+                }
+			}
+			
+			
+			
+		} catch (Exception e) {
+			System.out.println("解析异常数据:"+line);
+			e.printStackTrace();
+		}
+		return sb.toString();
+	}
+	
+	/**
+	 * 从未解压的数据中，获取访问ip
+	 * @param line
+	 * @return
+	 */
+	public static String getIP(String line) {
+		String ip = "";
+		try {
+			ip = line.split("-")[1].trim();
+		} catch (Exception e) {
+			System.err.println("获取ip失败,原数据为："  + line);
+			e.printStackTrace();
+		}
+		
+		return ip;
+	}
+	
+	
+	public static long isAfterWeekBeTwoHour(long time) {
+		try {
+			Date date = new Date(time); //获取时间戳
+			Date addDays = DateUtils.addDays(new Date(), -7); //一周前
+			Date addHours = DateUtils.addHours(new Date(), 2); //2小时后
+			if( date.before(addDays) || date.after(addHours) ) { 
+				time = System.currentTimeMillis();
+			}
+		} catch (Exception e) {
+			e.printStackTrace();
+		}
+		return time;
 	}
 	
 	
