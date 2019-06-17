@@ -35,6 +35,9 @@ public class Test {
             	
             	
             }
+            jsonObject.replace("","");
+            
+            System.out.println(jsonObject); 
             
            
 		}
