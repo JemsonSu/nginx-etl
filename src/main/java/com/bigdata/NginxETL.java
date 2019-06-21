@@ -14,6 +14,8 @@ import java.time.LocalDateTime;
 import java.time.LocalTime;
 import java.time.format.DateTimeFormatter;
 import java.util.Date;
+import java.util.HashMap;
+import java.util.Map;
 
 import org.apache.commons.lang3.time.DateUtils;
 
@@ -21,12 +23,83 @@ import com.alibaba.fastjson.JSON;
 import com.alibaba.fastjson.JSONArray;
 import com.alibaba.fastjson.JSONObject;
 import com.bigdata.util.HashUtil;
+import com.bigdata.util.IPAddressUtils;
 import com.bigdata.util.MyUtils;
 
 public class NginxETL {
+	public static IPAddressUtils ipAddressUtils = new IPAddressUtils();
+	//所有 省份、自治区、直辖市、特别行政区
+    public static Map<String,String> hashMap = new HashMap<String,String>();
+    //所有 自治区、直辖市、特别行政区
+    public static Map<String,String> hashMap1 = new HashMap<String,String>();
+    //所有 自治区
+    public static Map<String,String> hashMap2 = new HashMap<String,String>();
 
 	@SuppressWarnings("resource")
 	public static void main(String[] args) throws Exception {
+		//所有 省份、自治区、直辖市、特别行政区
+        hashMap.put("上海","");
+        hashMap.put("北京","");
+        hashMap.put("天津","");
+        hashMap.put("安徽","");
+        hashMap.put("澳门","");
+        hashMap.put("香港","");
+        hashMap.put("福建","");
+        hashMap.put("甘肃","");
+        hashMap.put("广东","");
+        hashMap.put("广西","");
+        hashMap.put("贵州","");
+        hashMap.put("海南","");
+        hashMap.put("河北","");
+        hashMap.put("河南","");
+        hashMap.put("黑龙","");
+        hashMap.put("湖北","");
+        hashMap.put("湖南","");
+        hashMap.put("吉林","");
+        hashMap.put("江苏","");
+        hashMap.put("江西","");
+        hashMap.put("辽宁","");
+        hashMap.put("内蒙","");
+        hashMap.put("宁夏","");
+        hashMap.put("青海","");
+        hashMap.put("山东","");
+        hashMap.put("山西","");
+        hashMap.put("陕西","");
+        hashMap.put("四川","");
+        hashMap.put("西藏","");
+        hashMap.put("新疆","");
+        hashMap.put("云南","");
+        hashMap.put("浙江","");
+        hashMap.put("重庆","");
+        hashMap.put("台湾","");
+
+        /*
+            4个直辖市：北京市、天津市、上海市、重庆市
+            5个自治区：广西壮族自治区、内蒙古自治区、西藏自治区、宁夏回族自治区、新疆维吾尔自治区
+    　　    2个特别行政区：香港特别行政区、澳门特别行政区
+        */
+        hashMap1.put("北京","北京市");
+        hashMap1.put("天津","天津市");
+        hashMap1.put("上海","上海市");
+        hashMap1.put("重庆","重庆市");
+        hashMap1.put("广西","广西壮族自治区");
+        hashMap1.put("内蒙","内蒙古自治区");
+        hashMap1.put("西藏","西藏自治区");
+        hashMap1.put("宁夏","宁夏回族自治区");
+        hashMap1.put("新疆","新疆维吾尔自治区");
+        hashMap1.put("香港","香港特别行政区");
+        hashMap1.put("澳门","澳门特别行政区");
+        hashMap1.put("台湾","台湾省");
+
+        //5个自治区：广西  壮族自治区、内蒙古 自治区、西藏 自治区、宁夏  回族自治区、新疆  维吾尔自治区
+        hashMap2.put("广西","2");
+        hashMap2.put("内蒙","3");
+        hashMap2.put("西藏","2");
+        hashMap2.put("宁夏","2");
+        hashMap2.put("新疆","2");
+		
+		
+		//IP地址库
 		
 		String sOldDir = "";
 		String sOldFile = "";
@@ -45,8 +118,13 @@ public class NginxETL {
 			while ((line = myReadLine(reader)) != null ) { 
 				String ip = getIP(line); 
 				//System.out.println(line); 
+				//解压
 				line = decoder(line);
+				//清洗
+				line = processData(line, ip);
 				//System.out.println("最终数据为:|"+line+"|");
+				
+				
 				writer.write(line);
 				writer.newLine();
 				writer.flush();
@@ -109,6 +187,7 @@ public class NginxETL {
 	 * 
 	 */
 	public static String myReadLine(BufferedReader reader) {
+		//连读10次 读不了数据重新来读取   
 		String line = null;
 		try {
 			while(true) {
@@ -169,6 +248,7 @@ public class NginxETL {
 				JSONObject jsonObject = jsonArray.getJSONObject(i);
 				String type = jsonObject.getString("type"); //获取类型
 				//事件逻辑
+				/*
                 if(type.equals("track") || type.equals("track_signup")) {
                 	JSONObject propertiesJsonObject = jsonObject.getJSONObject("properties"); 
                 	String event = jsonObject.getString("event");
@@ -179,7 +259,110 @@ public class NginxETL {
                     Long user_id = HashUtil.userIdHash(distinct_id.toString());
                 	
                 	
+                }*/
+                //后面在弄上面的情况
+                JSONObject propertiesJsonObject = jsonObject.getJSONObject("properties"); 
+            	String event = jsonObject.getString("event");
+            	String distinct_id = jsonObject.getString("distinct_id");
+            	String time = jsonObject.getString("time");
+            	
+            	String province = ipAddressUtils.getIPLocation(ip).getCountry(); //获取到的区域信息 "$province":"",
+            	System.out.println("省份：-----------------"+province + "===========");
+                String city = ipAddressUtils.getIPLocation(ip).getCity(); //获取到的城市  "$city":"",
+                String carrier = ipAddressUtils.getIPLocation(ip).getArea(); //运营商  "$carrier":""
+                
+                String substring = province.substring(0,2); //获取字符串的前两个字符
+                int i1 = province.indexOf("省");
+                int i2 = city.indexOf("市");
+                
+              //只要带有省份名 都用中国
+                if (hashMap.get(substring) !=null)
+                {
+                	propertiesJsonObject.put("$country","中国");
                 }
+                //只要带有 省 或 市 都用中国
+                else if(i1 != -1 || i2 != -1)//-1 表示找不到，不存在
+                {
+                	propertiesJsonObject.put("$country","中国");
+                }
+                else
+                {
+                	propertiesJsonObject.put("$country",province);
+                }
+
+//                                            int i1 = province.indexOf("省");
+                if (i1 != -1) //-1 表示找不到，不存在
+                {
+                    province = province.substring(0,i1+1);
+                    //如果遇到有 浙金省，则要替换为 浙江省
+                    if("浙金省".equals(province))
+                    {
+                        province = "浙江省";
+                    }
+                    else if("广西省".equals(province))
+                    {
+                        province = "广西";
+                    }
+                    propertiesJsonObject.put("$province",province);
+                }
+                else //找不到"省"字符，代表有两种情况，一种是自治区/行政区/直辖市，另外一种是外国名
+                {
+                    /*
+                        4个直辖市：北京市、天津市、上海市、重庆市
+    　　                5个自治区：广西  壮族自治区、内蒙古  自治区、西藏  自治区、宁夏  回族自治区、新疆  维吾尔自治区
+    　　                2个特别行政区：香港特别行政区、澳门特别行政区
+                    */
+                    String substring1 = province.substring(0, 2);
+                    String s1 = hashMap1.get(substring1);
+                    if(s1 == null)
+                    {
+                    	propertiesJsonObject.put("$province","");
+                    }
+                    else
+                    {
+                    	propertiesJsonObject.put("$province",s1);
+                    }
+                }
+
+//                                           int i2 = city.indexOf("市");
+                if (i2 != -1) //-1 表示找不到，不存在
+                {
+                    //5个自治区：广西  壮族自治区、内蒙古 自治区、西藏 自治区、宁夏  回族自治区、新疆  维吾尔自治区
+                    String substring2 = city.substring(0, 2);
+                    String s2 = hashMap2.get(substring2);
+                    if(s2 != null)
+                    {
+                        int i3 = Integer.parseInt(s2);
+                        city = city.substring(i3, i2+1);
+                        propertiesJsonObject.put("$city",city);
+                    }
+                    else
+                    {
+                        city = city.substring(0,i2+1);
+                        propertiesJsonObject.put("$city",city);
+                    }
+                }
+//                                                   else //找不到"市"字符，代表有两种情况，一种是自治区/行政区/直辖市，另外一种是外国名
+//                                                   {
+//                                                       properties.put("$city",city);
+//                                                    }
+
+                propertiesJsonObject.put("$ip",ip);
+                propertiesJsonObject.put("$carrier",carrier);
+            	
+            	
+            	//把 hash值 转换为 long值
+                Long user_id = HashUtil.userIdHash(distinct_id.toString());
+                
+                String jsonString = jsonObject.toJSONString();
+                
+                if (i==0) {
+                	sb.append(jsonString);
+				}else {
+					sb.append("\n"+jsonString);
+				}
+                
+                
 			}
 			
 			
@@ -221,6 +404,21 @@ public class NginxETL {
 			e.printStackTrace();
 		}
 		return time;
+	}
+	
+	/**
+	 * 判断包含省份  后面弄
+	 * @return
+	 */
+	public static void isIncludeProvince(String province) {
+		//所有 省份、自治区、直辖市、特别行政区
+	    Map<String,String> hashMap = new HashMap<String,String>();
+	    //所有 自治区、直辖市、特别行政区
+	    Map<String,String> hashMap1 = new HashMap<String,String>();
+	    //所有 自治区
+	    Map<String,String> hashMap2 = new HashMap<String,String>();
+	    
+		
 	}
 	
 	
