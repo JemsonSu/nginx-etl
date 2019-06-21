@@ -7,6 +7,8 @@ import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
 import java.io.OutputStreamWriter;
 import java.util.Iterator;
+import java.util.Map.Entry;
+import java.util.Set;
 
 import org.apache.commons.io.IOUtils;
 
@@ -22,25 +24,16 @@ public class Test {
 		
 		System.out.println(str);
 		
-		JSONArray jsonArray = JSON.parseArray(str);
-		for(int i=0; i<jsonArray.size(); i++) {
-			JSONObject jsonObject = jsonArray.getJSONObject(i);
-			String type = jsonObject.getString("type"); //获取类型
-			//事件逻辑
-            if(type.equals("track") || type.equals("track_signup")) {
-            	JSONObject propertiesJsonObject = jsonObject.getJSONObject("properties"); 
-            	String event = jsonObject.getString("event");
-            	String distinct_id = jsonObject.getString("distinct_id");
-            	String time = jsonObject.getString("time");
-            	
-            	
-            }
-            jsonObject.replace("","");
-            
-            System.out.println(jsonObject); 
-            
-           
+		JSONObject jsonObject = JSON.parseObject(str);
+		System.out.println(jsonObject.toJSONString());
+		jsonObject.put("age", 23);
+		System.out.println(jsonObject.toJSONString());
+		
+		Set<Entry<String,Object>> entrySet = jsonObject.entrySet();
+		for(Entry<String,Object> entry : entrySet) {
+			//System.out.println(entry.getKey() + ":" + entry.getValue());
 		}
+		
 		
 		
 	}

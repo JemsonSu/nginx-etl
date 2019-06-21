@@ -37,6 +37,8 @@ public class NginxETL {
 
 	@SuppressWarnings("resource")
 	public static void main(String[] args) throws Exception {
+		//初始化ip库
+		ipAddressUtils.init();
 		//所有 省份、自治区、直辖市、特别行政区
         hashMap.put("上海","");
         hashMap.put("北京","");
@@ -267,7 +269,6 @@ public class NginxETL {
             	String time = jsonObject.getString("time");
             	
             	String province = ipAddressUtils.getIPLocation(ip).getCountry(); //获取到的区域信息 "$province":"",
-            	System.out.println("省份：-----------------"+province + "===========");
                 String city = ipAddressUtils.getIPLocation(ip).getCity(); //获取到的城市  "$city":"",
                 String carrier = ipAddressUtils.getIPLocation(ip).getArea(); //运营商  "$carrier":""
                 

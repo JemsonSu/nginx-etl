@@ -9,22 +9,22 @@ import java.util.Date;
 import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang3.time.DateUtils;
 
+import com.bigdata.util.IPAddressUtils;
+
 import javafx.util.converter.LocalDateTimeStringConverter;
 
 public class Test2 {
 
 	@SuppressWarnings("deprecation")
 	public static void main(String[] args) throws Exception {
-		String s = "1560355261207";
-		SimpleDateFormat format = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
-		Date date = new Date(System.currentTimeMillis());
+		IPAddressUtils ipAddressUtils = new IPAddressUtils();
+		ipAddressUtils.init();
 		
-		//System.out.println(format.format(new Date(NginxETL.isAfterWeekBeTwoHour(15603552612075L))));
-		
-		
-		Date date3 = DateUtils.addHours(date, 3); 
-		System.out.println(format.format(date3));
-		System.out.println(format.format(new Date(NginxETL.isAfterWeekBeTwoHour(date3.getTime()))));
+		String ip = "223.88.210.129";
+		String province = ipAddressUtils.getIPLocation(ip).getCountry(); //获取到的区域信息 "$province":"",
+    	System.out.println("省份：-----------------"+province + "===========");
+        String city = ipAddressUtils.getIPLocation(ip).getCity(); //获取到的城市  "$city":"",
+        String carrier = ipAddressUtils.getIPLocation(ip).getArea(); //运营商  "$carrier":""
 		
 		
 		
